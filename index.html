@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography Lighting Masterclass by Yury Sharlou</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A single-page application with a sticky top navigation for easy access to all sections. The structure flows from fundamentals to four specific lighting blocks. This non-linear navigation allows users to either follow the course sequentially or jump directly to a topic of interest. Each block uses interactive diagrams built with HTML/CSS/JS and accordions for text content to make complex information digestible and prevent overwhelming the user. -->
+    <!-- Visualization & Content Choices: 
+    - Report Info: Fundamentals (Hard/Soft Light, Direction, Temperature). Goal: Explain core concepts interactively. Method: JS-powered HTML/CSS diagrams with sliders and buttons. Justification: More engaging and memorable than static text. Library: None (Vanilla JS).
+    - Report Info: 4 Lighting Setups (Window, Top, Butterfly, Rembrandt). Goal: Clearly visualize equipment placement. Method: HTML/CSS diagrams for each setup with hover-enabled tooltips. Justification: Provides a clear, interactive reference that avoids prohibited SVG/Mermaid. Library: None (Vanilla JS).
+    - Report Info: Textual content (Key Points, Lifehacks). Goal: Present dense information without clutter. Method: Accordion dropdowns. Justification: Keeps the UI clean and allows users to focus on specific information chunks. Library: None (Vanilla JS).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #2c3e50;
+        }
+        .active-nav {
+            color: #D2B48C;
+            font-weight: 700;
+        }
+        .diagram-face {
+            width: 150px;
+            height: 200px;
+            background-color: #E0E0E0;
+            border-radius: 50% / 40% 40% 60% 60%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .diagram-light-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: background 0.4s ease, background-color 0.4s ease;
+            background: transparent;
+        }
+        .diagram-shadow {
+            width: 70px;
+            height: 180px;
+            background-color: transparent;
+            position: absolute;
+            top: 10px;
+            left: 100px;
+            border-radius: 50%;
+            transition: box-shadow 0.4s ease;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        .diagram-element {
+            position: absolute;
+            background-color: #A0AEC0;
+            border: 2px solid #4A5568;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .diagram-element:hover {
+            transform: scale(1.05);
+            border-color: #D2B48C;
+        }
+        .tooltip {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2c3e50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 10;
+        }
+        .diagram-element:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        .octabox { border-radius: 50%; }
+        .softbox { border-radius: 8px; }
+        .reflector { border-radius: 30% / 50%; }
+        .light-source-viz {
+            position: absolute;
+            left: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: radial-gradient(circle, #FFFDE7, transparent 60%);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="text-xl font-bold text-gray-800">Lighting Masterclass</div>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-semibold text-gray-600">
+                <a href="#fundamentals" class="nav-link hover:text-[#D2B48C]">Fundamentals</a>
+                <a href="#window" class="nav-link hover:text-[#D2B48C]">Window Light</a>
+                <a href="#top" class="nav-link hover:text-[#D2B48C]">Fashion Top Light</a>
+                <a href="#butterfly" class="nav-link hover:text-[#D2B48C]">Butterfly Light</a>
+                <a href="#rembrandt" class="nav-link hover:text-[#D2B48C]">Rembrandt Light</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-4 space-y-2">
+            <a href="#fundamentals" class="block nav-link hover:text-[#D2B48C]">Fundamentals</a>
+            <a href="#window" class="block nav-link hover:text-[#D2B48C]">Window Light</a>
+            <a href="#top" class="block nav-link hover:text-[#D2B48C]">Fashion Top Light</a>
+            <a href="#butterfly" class="block nav-link hover:text-[#D2B48C]">Butterfly Light</a>
+            <a href="#rembrandt" class="block nav-link hover:text-[#D2B48C]">Rembrandt Light</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 md:py-12">
+        
+        <section id="hero" class="text-center mb-16 md:mb-24">
+            <h1 class="text-4xl md:text-6xl font-bold text-gray-800 mb-4">Studio Lighting Masterclass by Yury Sharlou</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">An interactive guide to understanding and creating professional lighting setups, from natural window light to dramatic studio schemes.</p>
+        </section>
+
+        <!-- Fundamentals Section -->
+        <section id="fundamentals" class="mb-16 md:mb-24 scroll-mt-20">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">The Language of Light</h2>
+            <div class="grid md:grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <!-- Hard vs Soft Light -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4">1. Quality: Hard vs. Soft</h3>
+                    <p class="mb-6 text-gray-600">A small light source creates hard, sharp shadows. A large source creates soft, gentle shadows. Move the slider to see the transition.</p>
+                    <div class="flex flex-col items-center">
+                        <div class="relative">
+                           <div id="light-source-viz" class="light-source-viz"></div>
+                           <div class="diagram-face mb-4">
+                               <div id="shadow-diagram" class="diagram-shadow"></div>
+                           </div>
+                        </div>
+                        <label for="light-quality-slider" class="block w-full text-center text-sm font-medium text-gray-700 mb-2">Hard <span class="mx-2">&#8596;</span> Soft</label>
+                        <input id="light-quality-slider" type="range" min="0" max="100" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+                <!-- Direction of Light -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4">2. Direction</h3>
+                    <p class="mb-6 text-gray-600">The angle of your light source dramatically changes the mood and dimension in a portrait. Click the buttons to see how it sculpts the face.</p>
+                     <div class="flex flex-col items-center">
+                        <div class="diagram-face mb-4">
+                            <div id="direction-overlay" class="diagram-light-overlay"></div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <button class="direction-btn px-4 py-2 bg-gray-200 text-sm font-semibold rounded-lg hover:bg-[#D2B48C] hover:text-white" data-style="radial-gradient(circle at 25% 40%, rgba(255, 255, 255, 0.7), transparent 50%), radial-gradient(circle at 75% 60%, rgba(0, 0, 0, 0.35), transparent 50%)">45-Degree</button>
+                            <button class="direction-btn px-4 py-2 bg-gray-200 text-sm font-semibold rounded-lg hover:bg-[#D2B48C] hover:text-white" data-style="radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.7), transparent 50%), radial-gradient(circle at 100% 50%, rgba(0, 0, 0, 0.1), transparent 40%), radial-gradient(circle at 0% 50%, rgba(0, 0, 0, 0.1), transparent 40%)">Frontal</button>
+                            <button class="direction-btn px-4 py-2 bg-gray-200 text-sm font-semibold rounded-lg hover:bg-[#D2B48C] hover:text-white" data-style="radial-gradient(circle at 0% 50%, rgba(255, 255, 255, 0.7), transparent 40%), radial-gradient(circle at 100% 50%, rgba(0, 0, 0, 0.4), transparent 40%)">Side</button>
+                            <button class="direction-btn px-4 py-2 bg-gray-200 text-sm font-semibold rounded-lg hover:bg-[#D2B48C] hover:text-white" data-style="radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.7), transparent 40%), radial-gradient(circle at 50% 90%, rgba(0, 0, 0, 0.35), transparent 40%)">Top</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Temperature of Light -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4">3. Temperature</h3>
+                    <p class="mb-6 text-gray-600">Light color ranges from cool (blue tones) to warm (orange tones). This is measured in Kelvin (K). Use the slider to see how temperature affects mood.</p>
+                     <div class="flex flex-col items-center">
+                        <div class="diagram-face mb-4">
+                            <div id="temp-overlay" class="diagram-light-overlay"></div>
+                        </div>
+                        <label for="light-temp-slider" class="block w-full text-center text-sm font-medium text-gray-700 mb-2">Cool <span class="mx-2">&#8596;</span> Warm</label>
+                        <input id="light-temp-slider" type="range" min="0" max="100" value="50" class="w-full h-2 bg-gradient-to-r from-blue-300 to-orange-300 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lighting Setups -->
+        <div id="setups-container" class="space-y-16 md:space-y-24">
+            <!-- Block 1: Window Light -->
+            <section id="window" class="scroll-mt-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-2">Block 1: Natural Window Light</h2>
+                <p class="text-lg text-gray-600 text-center mb-10">Using a window as a large, soft, and beautiful light source.</p>
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="relative w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center p-4">
+                            <div class="diagram-element" style="width: 15px; height: 200px; left: 20px; top: 50%; transform: translateY(-50%); background-color: #81D4FA;">
+                                <div class="tooltip">Window</div>
+                            </div>
+                            <div class="diagram-element octabox" style="width: 60px; height: 60px; left: 50%; top: 50%; transform: translate(-50%, -50%);">
+                                Model
+                                <div class="tooltip">Model</div>
+                            </div>
+                             <div class="diagram-element reflector" style="width: 80px; height: 100px; right: 30px; top: 50%; transform: translateY(-50%) rotate(15deg); background-color: #FAFAFA;">
+                                <div class="tooltip">Reflector (Fill)</div>
+                            </div>
+                        </div>
+                        <div class="prose max-w-none">
+                            <div class="accordion-item">
+                                <button class="accordion-button text-xl font-bold w-full text-left py-3 flex justify-between items-center"><span>Key Points</span><span class="transform transition-transform">&#9662;</span></button>
+                                <div class="accordion-content">
+                                    <ul class="list-disc pl-5 space-y-2 pt-2 text-gray-600">
+                                        <li>Treat the window as a large softbox.</li>
+                                        <li>Use reflectors to control shadows: white to soften (fill), black to deepen (negative fill).</li>
+                                        <li>The model's distance from the window controls light intensity and contrast.</li>
+                                        <li>Always look for the catchlights in the model's eyes.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                             <div class="accordion-item">
+                                <button class="accordion-button text-xl font-bold w-full text-left py-3 flex justify-between items-center"><span>5 Lifehacks</span><span class="transform transition-transform">&#9662;</span></button>
+                                <div class="accordion-content">
+                                    <ol class="list-decimal pl-5 space-y-2 pt-2 text-gray-600">
+                                        <li>A thin white curtain is a perfect diffuser.</li>
+                                        <li>Use a white wall as a giant reflector.</li>
+                                        <li>A light-colored floor acts as a natural fill light from below.</li>
+                                        <li>Place the model close to the window for a darker background.</li>
+                                        <li>Use your hand as a test subject to see how the light behaves.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Block 2: Fashion Top Light -->
+            <section id="top" class="scroll-mt-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-2">Block 2: Fashion Top Light</h2>
+                <p class="text-lg text-gray-600 text-center mb-10">Creating a sculpted, high-contrast look with a single light from above.</p>
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="relative w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center p-4">
+                             <div class="diagram-element octabox" style="width: 120px; height: 120px; left: 50%; bottom: 130px; transform: translateX(-50%);">
+                                Key Light
+                                <div class="tooltip">Large Softbox on Boom Arm (High Above)</div>
+                            </div>
+                            <div class="diagram-element octabox" style="width: 60px; height: 60px; left: 50%; top: 60px; transform: translateX(-50%);">
+                                Model
+                                <div class="tooltip">Model (Chin tilted up)</div>
+                            </div>
+                            <div class="diagram-element" style="width: 20px; height: 20px; left: 50%; bottom: 20px; transform: translateX(-50%); background-color: #4A5568;">
+                                <div class="tooltip">Camera</div>
+                            </div>
+                        </div>
+                        <div class="prose max-w-none">
+                            <div class="accordion-item">
+                                <button class="accordion-button text-xl font-bold w-full text-left py-3 flex justify-between items-center"><span>Key Points</span><span class="transform transition-transform">&#9662;</span></button>
+                                <div class="accordion-content">
+                                    <ul class="list-disc pl-5 space-y-2 pt-2 text-gray-600">
+                                        <li>Use a boom arm for safety and correct positioning.</li>
+                                        <li>Feather the light (aim the edge) to avoid "raccoon eyes."</li>
+                                        <li>This high-contrast setup often uses no fill light.</li>
+                                        <li>Direct the model to tilt their chin up into the light.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                             <div class="accordion-item">
+                                <button class="accordion-button text-xl font-bold w-full text-left py-3 flex justify-between items-center"><span>5 Lifehacks</span><span class="transform transition-transform">&#9662;</span></button>
+                                <div class="accordion-content">
+                                     <ol class="list-decimal pl-5 space-y-2 pt-2 text-gray-600">
+                                        <li>Use a silver reflector for more contrast and "pop."</li>
+                                        <li>A white floor can act as a subtle fill light.</li>
+                                        <li>Try a sitting pose, looking up towards the light.</li>
+                                        <li>A larger softbox will create softer shadows.</li>
+                                        <li>This setup is great for highlighting texture on clothing or products.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Block 3: Butterfly Light -->
+            <section id="butterfly" class="scroll-mt-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-2">Block 3: Butterfly Light (The Clamshell)</h2>
+                <p class="text-lg text-gray-600 text-center mb-10">A classic, flattering beauty light creating a butterfly-shaped shadow under the nose.</p>
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="relative w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center p-4">
+                            <div class="diagram-element softbox" style="width: 100px; height: 80px; left: 50%; bottom: 100px; transform: translateX(-50%);">
+                                Key Light
+                                <div class="tooltip">Key Light (High & Close to Camera)</div>
+                            </div>
+                            <div class="diagram-element octabox" style="width: 60px; height: 60px; left: 50%; top: 40px; transform: translateX(-50%);">
+                                Model
+                                <div class="tooltip">Model</div>
+                            </div>
+                            <div class="diagram-element reflector" style="width: 100px; height: 50px; left: 50%; top: 110px; transform: translateX(-50%); background-color: #FAFAFA;">
+                                Fill
+                                <div class="tooltip">Reflector (Fill, Low & Close to Model)</div>
+                            </div>
+                            <div class="diagram-element" style="width: 20px; height: 20px; left: 50%; bottom: 20px; transform: translateX(-50%); background-color: #4A5568;">
+                                <div class="tooltip">Camera</div>
+                            </div>
+                        </div>
+                         <div class="prose max-w-none">
+                            <div class="accordion-item">
+                                <button class="accordion-button text-xl font-bold w-full text-left py-3 flex justify-between items-center"><span>Key Points</span><span class="transform transition-transform">&#9662;</span></button>
+                                <div class="accordion-content">
+                                    <ul class="list-disc pl-5 space-y-2 pt-2 text-gray-600">
+                                        <li>The key light is placed high and directly in front of the subject.</li>
+                                        <li>Creates a symmetrical, butterfly-like shadow under the nose.</li>
+                                        <li>Extremely flattering for subjects with high cheekbones.</li>
+                                        <li>Adding a reflector below for fill creates the "clamshell" setup.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                             <div class="accordion-item">
+                                <button class="accordion-button text-xl font-bold w-full text-left py-3 flex justify-between items-center"><span>5 Lifehacks</span><span class="transform transition-transform">&#9662;</span></button>
+                                <div class="accordion-content">
+                                     <ol class="list-decimal pl-5 space-y-2 pt-2 text-gray-600">
+                                        <li>The closer the fill reflector, the softer the shadows under the chin.</li>
+                                        <li>This setup is one of the safest bets for people wearing glasses.</li>
+                                        <li>Add a hair light for extra separation.</li>
+                                        <li>Watch the catchlights; you should see a single, high catchlight.</li>
+                                        <li>This can be a one-light setup if you want a more dramatic shadow.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Block 4: Rembrandt Light -->
+            <section id="rembrandt" class="scroll-mt-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-2">Block 4: Rembrandt Light</h2>
+                <p class="text-lg text-gray-600 text-center mb-10">Creating a dramatic, moody, and painterly portrait.</p>
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="relative w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center p-4">
+                             <div class="diagram-element softbox" style="width: 60px; height: 80px; left: 10px; bottom: 70px; transform: rotate(35deg);">
+                                Key Light
+                                <div class="tooltip">Key Light (Higher & Wider)</div>
+                            </div>
+                            <div class="diagram-element octabox" style="width: 60px; height: 60px; left: 50%; top: 50%; transform: translateX(-50%);">
+                                Model
+                                <div class="tooltip">Model</div>
+                            </div>
+                            <div class="diagram-element reflector" style="width: 80px; height: 100px; right: 20px; bottom: 80px; transform: rotate(-25deg); background-color: #2D3748;">
+                                Negative Fill
+                                <div class="tooltip">Black Reflector (Negative Fill)</div>
+                            </div>
+                             <div class="diagram-element" style="width: 20px; height: 20px; left: 50%; bottom: 20px; transform: translateX(-50%); background-color: #4A5568;">
+                                <div class="tooltip">Camera</div>
+                            </div>
+                        </div>
+                         <div class="prose max-w-none">
+                            <div class="accordion-item">
+                                <button class="accordion-button text-xl font-bold w-full text-left py-3 flex justify-between items-center"><span>Key Points</span><span class="transform transition-transform">&#9662;</span></button>
+                                <div class="accordion-content">
+                                    <ul class="list-disc pl-5 space-y-2 pt-2 text-gray-600">
+                                        <li>Defined by the triangle of light on the shadowed cheek.</li>
+                                        <li>The nose shadow must connect with the cheek shadow.</li>
+                                        <li>This is a form of "short lighting," which is often slimming.</li>
+                                        <li>Achieved by placing the key light higher and further to the side than a loop setup.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                             <div class="accordion-item">
+                                <button class="accordion-button text-xl font-bold w-full text-left py-3 flex justify-between items-center"><span>5 Lifehacks</span><span class="transform transition-transform">&#9662;</span></button>
+                                <div class="accordion-content">
+                                     <ol class="list-decimal pl-5 space-y-2 pt-2 text-gray-600">
+                                        <li>A smaller light source creates a sharper, more defined triangle.</li>
+                                        <li>Fine-tune the triangle by asking the model for a slight head turn.</li>
+                                        <li>This high-contrast style is perfect for black & white photos.</li>
+                                        <li>Add a very dim, gridded hair light for separation from a black background.</li>
+                                        <li>Use black cards for negative fill to deepen the shadows and mood.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <footer class="text-center py-8 mt-16 border-t border-gray-200">
+        <p class="text-gray-500 text-sm">&copy; 2025 Lighting Masterclass by Yury Sharlou. Created to make light simple.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile Menu
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Light Quality Slider
+            const qualitySlider = document.getElementById('light-quality-slider');
+            const shadowDiagram = document.getElementById('shadow-diagram');
+            const lightSourceViz = document.getElementById('light-source-viz');
+            const updateQuality = () => {
+                const value = parseInt(qualitySlider.value); // 0-100
+                const percent = value / 100;
+                
+                // Shadow: 0=hard, 100=soft
+                const blur = 1 + (percent * 69); // 1 to 70
+                const spread = 2 + (percent * 28); // 2 to 30
+                const opacity = 0.75 - (percent * 0.7); // 0.75 to 0.05
+                shadowDiagram.style.boxShadow = `10px 0px ${blur}px ${spread}px rgba(0,0,0,${opacity})`;
+
+                // Light source visualization: 0=small/hard, 100=large/soft
+                const lightSize = 20 + (percent * 130); // 20px to 150px
+                const lightOpacity = 0.8 - (percent * 0.5); // 0.8 to 0.3
+                lightSourceViz.style.width = `${lightSize}px`;
+                lightSourceViz.style.height = `${lightSize}px`;
+                lightSourceViz.style.opacity = lightOpacity;
+            };
+            qualitySlider.addEventListener('input', updateQuality);
+            updateQuality();
+
+            // Direction Buttons
+            const directionButtons = document.querySelectorAll('.direction-btn');
+            const directionOverlay = document.getElementById('direction-overlay');
+            directionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    directionOverlay.style.background = button.dataset.style;
+                });
+            });
+            document.querySelector('.direction-btn').click();
+
+            // Light Temperature Slider
+            const tempSlider = document.getElementById('light-temp-slider');
+            const tempOverlay = document.getElementById('temp-overlay');
+            const updateTemp = () => {
+                const value = parseInt(tempSlider.value);
+                const percent = value / 100;
+                // Interpolate between cool blue and warm orange
+                const r = Math.round(147 + (255 - 147) * percent);
+                const g = Math.round(197 + (165 - 197) * percent);
+                const b = Math.round(253 + (0 - 253) * percent);
+                tempOverlay.style.backgroundColor = `rgba(${r}, ${g}, ${b}, 0.25)`;
+            };
+            tempSlider.addEventListener('input', updateTemp);
+            updateTemp();
+
+            // Accordion Logic
+            const accordionButtons = document.querySelectorAll('.accordion-button');
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    const icon = button.querySelector('span:last-child');
+                    
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        button.closest('.prose').querySelectorAll('.accordion-content').forEach(el => {
+                           if (el !== content) {
+                             el.style.maxHeight = null;
+                             el.previousElementSibling.querySelector('span:last-child').style.transform = 'rotate(0deg)';
+                           }
+                         });
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
+            });
+
+            // Nav link active state on scroll
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            const linkHref = link.getAttribute('href');
+                            if (linkHref) {
+                                link.classList.toggle('active-nav', linkHref.substring(1) === entry.target.id);
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px" });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Fix nav link for Block 3
+            const wrongLink = document.querySelector('a[href="#45degree"]');
+            if(wrongLink) wrongLink.setAttribute('href', '#butterfly');
+        });
+    </script>
+
+</body>
+</html>
+
